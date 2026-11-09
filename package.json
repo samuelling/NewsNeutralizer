@@ -1,0 +1,20 @@
+{
+  "name": "newsneutralizer",
+  "version": "0.1.0",
+  "description": "Assess news front pages for left/right framing and rewrite every headline in neutral wire style, using a local LLM (Ollama).",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "NN_BACKEND=mock node server.js",
+    "eval": "node eval/run.js",
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  },
+  "license": "MIT"
+}
