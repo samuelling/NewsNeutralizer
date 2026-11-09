@@ -106,26 +106,11 @@
   body.sane .bar{grid-template-columns:1fr}
   body.sane .inner h4{font-weight:500}
   .hidden{display:none !important}
-  /* site board (GitHub Pages) */
-  #board .row2{display:grid;grid-template-columns:150px 1fr 210px;gap:14px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--rule);cursor:pointer;text-decoration:none;color:inherit}
-  #board .row2:hover{background:var(--chip)}
-  #board .nm{font:600 16px "Source Serif 4",serif}
-  #board .nm small{display:block;font:12px Inter,sans-serif;color:var(--muted)}
-  #board .lbl{font-size:13px;color:var(--muted)}
-  #board .lbl b{color:var(--ink);font-weight:600}
-  .ftrack{position:relative;height:22px}
-  .ftrack .ln{position:absolute;left:0;right:0;top:10px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--left),var(--rule) 50%,var(--right))}
-  .ftrack .mid{position:absolute;left:50%;top:3px;bottom:3px;width:1px;background:var(--muted);opacity:.5}
-  .ftrack .dot{position:absolute;top:4px;width:14px;height:14px;border-radius:50%;transform:translateX(-50%);background:var(--ink);border:2px solid var(--paper)}
-  .ftrack .sel{position:absolute;top:5px;width:12px;height:12px;border-radius:2px;transform:translateX(-50%) rotate(45deg);border:2px solid var(--accent);background:transparent}
-  .axis{display:grid;grid-template-columns:150px 1fr 210px;gap:14px;font-size:11px;color:var(--muted);padding:0 4px}
-  .axis div{display:flex;justify-content:space-between}
-  .backbar{margin:0 0 12px}
   .keypanel{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13.5px}
   .keypanel .r{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
   .keypanel input[type=password]{flex:1;min-width:240px;font:14px ui-monospace,Menlo,monospace;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--ink)}
+  .keypanel a{color:var(--accent)}
   .keypanel select{font:13px Inter,sans-serif;padding:7px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
-  @media (max-width:640px){#board .row2,.axis{grid-template-columns:96px 1fr}#board .lbl{grid-column:1/-1;margin-top:-6px}.axis div:last-child{display:none}}
   footer{color:var(--muted);font-size:12.5px;margin-top:40px;border-top:1px solid var(--rule);padding-top:14px}
   @media (max-width:640px){.mast h1{font-size:32px}.inner{padding:12px 10px}.inner h4{font-size:16px}:root{--gut:24px;--minw:min(300px,36vw)}
     .bar{grid-template-columns:1fr 1fr}.bar input[type=range]{grid-column:1/-1;grid-row:2}.bar .side[data-go="0"]{justify-self:end}.bar .presets{grid-row:3;margin-top:0}}
@@ -150,7 +135,7 @@
     <button type="button" class="linkish" id="togglePaste">Site blocks fetching? Paste HTML or headlines instead</button>
   </div>
   <div id="keyPanel" class="keypanel hidden">
-    <b>Analyze any site with your own Claude API key.</b> Claude fetches the page for you; the key stays in this browser and is sent only to api.anthropic.com.
+    <b>Runs on your Claude API key, only when you click Analyze.</b> Claude fetches the page for you. The key stays in this browser and is sent only to api.anthropic.com.
     Rough cost per front page: ~8¢ with Sonnet, under 1¢ with Haiku. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key ↗</a>
     <div class="r">
       <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
@@ -166,8 +151,6 @@
   <div class="prog"><i id="progbar"></i></div>
   <div id="error" class="err hidden"></div>
 
-  <section id="board" class="card hidden"></section>
-  <div id="backBar" class="backbar hidden"><a href="#" class="linkish">← All sites</a></div>
   <section id="summary" class="card hidden"></section>
   <section id="pagecard" class="card hidden"></section>
 
@@ -208,13 +191,10 @@ const headers = TOKEN ? {'x-nn-token': TOKEN} : {};
 
 let rows = new Map(), meta = null, summary = null, page = null, active = 'all', politicalOnly = false;
 
-/* ── mode: local server (has /api) or static GitHub Pages site (has data/index.json) ── */
-let STATIC = false, client = null, boardIndex = null;
+/* ── mode: local server (has /api) or static GitHub Pages site (has mode.json) ── */
+let STATIC = false, client = null;
 (async () => {
-  try {
-    const r = await fetch('data/index.json', {cache:'no-store'});
-    if (r.ok) { boardIndex = await r.json(); STATIC = true; }
-  } catch {}
+  try { const r = await fetch('mode.json', {cache:'no-store'}); if (r.ok) STATIC = !!(await r.json()).static; } catch {}
   if (STATIC) initStatic(); else initServer();
 })();
 
@@ -226,22 +206,19 @@ function initServer(){
 }
 
 async function initStatic(){
-  $('health').classList.add('ok');
-  $('health').lastElementChild.textContent = `Board updated ${ago(boardIndex.updatedAt)} · ${boardIndex.model||''}`;
-  $('url').placeholder = 'Paste any news site URL to analyze it with your own Claude key';
-  $('subtitle').textContent = "How do the big news sites frame today's headlines? Claude scores each front page's left/right framing and rewrites every headline in neutral wire style.";
   client = await import('./client.js');
+  $('subtitle').textContent = "Paste a news site's URL. Claude scores its left/right framing and rewrites every headline in neutral wire style.";
+  $('url').placeholder = 'https://www.example-news.com';
+  $('keyPanel').classList.remove('hidden');
   const k = client.getKey(); if (k) $('apiKey').value = k;
-  $('rememberKey').checked = !!(()=>{try{return localStorage.getItem('nn.anthropicKey')}catch{return null}})();
-  $('apiKey').addEventListener('change', ()=>client.setKey($('apiKey').value.trim(), $('rememberKey').checked));
-  $('rememberKey').addEventListener('change', ()=>client.setKey($('apiKey').value.trim(), $('rememberKey').checked));
-  $('forgetKey').onclick = ()=>{ client.forgetKey(); $('apiKey').value=''; $('rememberKey').checked=false; };
-  $('url').addEventListener('focus', ()=>$('keyPanel').classList.remove('hidden'));
-  window.addEventListener('hashchange', route);
-  route();
+  const remembered = (()=>{ try { return !!localStorage.getItem('nn.anthropicKey'); } catch { return false; } })();
+  $('rememberKey').checked = remembered;
+  const pill = () => { const has=!!$('apiKey').value.trim(); $('health').className='pill '+(has?'ok':'bad'); $('health').lastElementChild.textContent = has?`Claude · ${$('apiModel').selectedOptions[0].text.split(' (')[0]}`:'Add your API key'; };
+  const save = () => { client.setKey($('apiKey').value.trim(), $('rememberKey').checked); pill(); };
+  $('apiKey').addEventListener('input', save); $('rememberKey').addEventListener('change', save); $('apiModel').addEventListener('change', pill);
+  $('forgetKey').onclick = ()=>{ client.forgetKey(); $('apiKey').value=''; $('rememberKey').checked=false; pill(); };
+  pill();
 }
-
-function ago(iso){ if(!iso) return 'never'; const m=Math.round((Date.now()-new Date(iso))/60000); return m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} d ago`; }
 
 function resetResults(){
   rows = new Map(); meta = summary = page = null; active='all';
@@ -249,45 +226,6 @@ function resetResults(){
   $('status').textContent=''; setProg(0);
 }
 
-async function route(){
-  const id = location.hash.slice(1);
-  if (!id || id==='custom') {
-    if (id==='custom' && rows.size) { $('board').classList.add('hidden'); $('backBar').classList.remove('hidden'); return; }
-    resetResults(); renderBoard(); $('board').classList.remove('hidden'); $('backBar').classList.add('hidden'); return;
-  }
-  const site = boardIndex.sites.find(s=>s.id===id); if (!site) { location.hash=''; return; }
-  $('board').classList.add('hidden'); $('backBar').classList.remove('hidden'); resetResults();
-  $('status').textContent = `Loading ${site.name}…`;
-  try {
-    const d = await (await fetch(`data/sites/${id}.json`, {cache:'no-store'})).json();
-    handle({type:'meta', source:d.source, model:d.model, backend:d.backend, count:d.items.length, cached:0});
-    handle({type:'items', items:d.items});
-    if (d.page) handle({type:'page', page:d.page});
-    handle({type:'summary', summary:d.summary});
-    setProg(1); $('status').textContent = `${site.name}: analyzed ${ago(d.generatedAt)} (${new Date(d.generatedAt).toLocaleString()}).`;
-    window.scrollTo({top:0});
-  } catch (e) { showError(`Couldn't load ${site.name}: ${e.message}`); }
-}
-
-function renderBoard(){
-  const sites = [...boardIndex.sites].filter(s=>s.generatedAt).sort((a,b)=>(a.framingLean??0)-(b.framingLean??0));
-  const failed = boardIndex.sites.filter(s=>!s.generatedAt);
-  const pct = v => `${((Math.max(-2,Math.min(2,v))+2)/4)*100}%`;
-  $('board').innerHTML = `<h2>Framing board</h2>
-    <div class="src">Each news site's front page, analyzed automatically by Claude on a schedule. ● = how the political headlines are <i>worded</i>; ◇ = which stories the page <i>chooses</i> to cover. Click a site for every headline, side by side with its neutral rewrite.</div>
-    <div class="axis" style="margin-top:14px"><span></span><div><span>◀ Left-coded</span><span>Neutral</span><span>Right-coded ▶</span></div><span></span></div>
-    ${sites.map(s=>`<a class="row2" href="#${s.id}">
-      <div class="nm">${esc(s.name)}<small>${s.total} headlines · ${ago(s.generatedAt)}${s.error?' · ⚠ last update failed':''}</small></div>
-      <div class="ftrack"><div class="ln"></div><div class="mid"></div>
-        ${s.selectionLean!=null?`<div class="sel" style="left:${pct(s.selectionLean)}" title="Story selection ${fmt(s.selectionLean)}"></div>`:''}
-        <div class="dot" style="left:${pct(s.framingLean)}" title="Wording ${fmt(s.framingLean)}"></div></div>
-      <div class="lbl"><b>${esc(s.framingLabel)}</b><br>wording ${fmt(s.framingLean)}${s.selectionLean!=null?` · selection ${fmt(s.selectionLean)}`:''}</div>
-    </a>`).join('') || '<p class="src">No sites analyzed yet. The first scheduled run will fill this in.</p>'}
-    ${failed.length?`<p class="src" style="margin-top:10px">Couldn't fetch: ${failed.map(s=>esc(s.name)).join(', ')}.</p>`:''}
-    <div class="caveat">These are a language model's reading of headline wording and story selection on one snapshot of each front page. They aren't an official media-bias rating, and they move as the news moves.</div>`;
-}
-
-$('backBar').querySelector('a').onclick = e => { e.preventDefault(); location.hash=''; };
 $('togglePaste').onclick = () => $('pasteBox').classList.toggle('hidden');
 
 /* ── run ── */
@@ -300,10 +238,9 @@ $('go').addEventListener('submit', async e => {
   else body.url = url;
   if (STATIC) {
     const key = $('apiKey').value.trim();
-    if (!key) { $('keyPanel').classList.remove('hidden'); $('apiKey').focus(); showError('Add your Claude API key above to analyze a new site. The board below works without one.'); return; }
+    if (!key) { $('apiKey').focus(); showError('Add your Claude API key above first.'); return; }
     client.setKey(key, $('rememberKey').checked);
-    resetResults(); $('board').classList.add('hidden'); $('backBar').classList.remove('hidden');
-    history.replaceState(null,'','#custom');
+    resetResults();
   } else resetResults();
   $('run').disabled = true;
   try {

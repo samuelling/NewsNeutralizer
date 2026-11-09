@@ -9,19 +9,15 @@ Point it at a news front page (or an RSS feed). A language model running **on yo
 
 Nothing leaves your Mac except the request for the news page itself. There are no API costs.
 
-## On GitHub (Pages + Actions)
+## On GitHub Pages
 
-The live site is at **https://samuelling.github.io/NewsNeutralizer/**. It has two parts:
+**https://samuelling.github.io/NewsNeutralizer/**: paste a news site's URL and click Analyze. Nothing runs on a schedule or in the background. Each analysis happens only when you click, using the Claude API key you enter on the page.
 
-- **Framing board.** GitHub Actions analyzes the sites in `sites.json` twice a day with your API key and commits the results to `docs/data/`. GitHub Pages serves them: one row per site showing how its headlines are worded (●) and which stories it chooses (◇). Click a site for every headline with the side-by-side slider.
-- **Paste any URL.** Visitors can analyze any other site with **their own** Claude API key. The key stays in their browser, which calls the Claude API directly. Claude's web-fetch tool fetches the page, because browsers can't fetch other sites themselves. Pasting HTML or a list of headlines works too.
+- The key stays in your browser (only for the session unless you tick "Remember on this device") and is sent only to api.anthropic.com.
+- Claude's web-fetch tool fetches the page, because browsers can't fetch other news sites themselves. If a site blocks it, use "Paste HTML or headlines instead."
+- Rough cost per front page: ~8¢ with Sonnet, under 1¢ with Haiku. Re-checking a site in the same browser only pays for new headlines.
 
-**One-time setup:**
-1. **Settings → Secrets and variables → Actions → New repository secret:** `ANTHROPIC_API_KEY` = your key.
-2. **Settings → Pages → Build and deployment → Source:** *GitHub Actions*.
-3. **Actions → "Analyze sites and deploy Pages" → Run workflow.** Tick *Dry run* first to check that every site can be fetched from GitHub's servers, with no API calls. Then run it again without the tick.
-
-**Cost:** after the first run, only new headlines are analyzed (`data/cache.json` is committed so the cache persists between runs). With Sonnet, 8 sites twice a day is roughly $5–10 a month. Set the repository variable `NN_ANTHROPIC_MODEL=claude-haiku-5-5` to cut that about tenfold. Change the schedule in `.github/workflows/pages.yml` and the site list in `sites.json`. If a front page yields too few headlines (some sites build pages with JavaScript or block GitHub's servers), the site's `feed` is used instead.
+**One-time setup:** Settings → Pages → Build and deployment → Source: **GitHub Actions**. The page then redeploys automatically whenever the code changes. No repository secrets are needed.
 
 ## Quick start with the Claude API (fastest)
 
