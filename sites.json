@@ -1,0 +1,15 @@
+{
+  "_comment": "Sites analyzed on schedule by GitHub Actions. 'url' is the front page; 'feed' (optional) is used if fewer than minHeadlines are found on the front page. The list mixes outlets usually described as left-leaning, center and right-leaning so the board can be compared across the spectrum. Edit freely.",
+  "minHeadlines": 12,
+  "maxHeadlines": 120,
+  "sites": [
+    { "id": "foxnews",   "name": "Fox News",        "url": "https://www.foxnews.com/",        "feed": "https://moxie.foxnews.com/google-publisher/latest.xml" },
+    { "id": "nypost",    "name": "New York Post",   "url": "https://nypost.com/",             "feed": "https://nypost.com/feed/" },
+    { "id": "breitbart", "name": "Breitbart",       "url": "https://www.breitbart.com/",      "feed": "https://feeds.feedburner.com/breitbart" },
+    { "id": "apnews",    "name": "AP News",         "url": "https://apnews.com/" },
+    { "id": "bbc",       "name": "BBC News",        "url": "https://www.bbc.com/news",        "feed": "https://feeds.bbci.co.uk/news/rss.xml" },
+    { "id": "cnn",       "name": "CNN",             "url": "https://www.cnn.com/",            "feed": "http://rss.cnn.com/rss/cnn_topstories.rss" },
+    { "id": "guardian",  "name": "The Guardian US", "url": "https://www.theguardian.com/us",  "feed": "https://www.theguardian.com/us/rss" },
+    { "id": "huffpost",  "name": "HuffPost",        "url": "https://www.huffpost.com/",       "feed": "https://www.huffpost.com/section/front-page/feed" }
+  ]
+}
