@@ -3,196 +3,341 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NewsNeutralizer</title>
+<title>NewsNeutralizer: see the spin, read it straight</title>
+<meta name="description" content="Paste a news site. See how its headlines lean, left or right, and read every one rewritten in plain, neutral language.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b1b1f'/%3E%3Cpath d='M7 20h18' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='14' r='4' fill='%2397c8b8'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#f6f4ef; --paper:#fffdf8; --ink:#1d1d1b; --muted:#6b6a65; --rule:#dcd8cf; --chip:#ece8df; --accent:#3b5b4a;
-    --orig-bg:#f3ece6; --neu-bg:#eaf0ec; --left:#3a6ea5; --right:#b5473a; --warn:#a36a00;
-    --c-loaded:#a3542b; --c-label:#7a3f8f; --c-gap:#2f6690; --c-attrib:#5a6b2e; --c-sens:#9a7b14; --c-op:#555; --c-none:#9a988f;
-    --split:50; --gut:30px; --minw:min(300px,40vw); --lo:1; --ro:1;
+    --bg:#f6f3ec; --bg2:#efebe1; --paper:#fffdf8; --ink:#1b1b1f; --ink2:#3a3a40; --muted:#74726b; --rule:#e2ddd1; --chip:#efeadf;
+    --accent:#2f6f62; --accent-soft:#e3efe9; --left:#3d6fb0; --right:#c0473b; --warn:#a06200;
+    --orig-bg:#fbf1ea; --neu-bg:#edf5f1;
+    --c-loaded:#b5582c; --c-label:#7d4497; --c-gap:#2f6690; --c-attrib:#5c7230; --c-sens:#a17d10; --c-op:#5d5d63; --c-none:#a3a199;
+    --shadow:0 1px 2px rgba(30,25,10,.04),0 8px 28px -12px rgba(30,25,10,.18);
+    --r:18px; --split:50; --gut:30px; --minw:min(300px,40vw); --lo:1; --ro:1;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#161614; --paper:#1f1f1c; --ink:#ecebe6; --muted:#a09e96; --rule:#3a3934; --chip:#2b2a26; --accent:#8fbfa3;
-      --orig-bg:#2a2420; --neu-bg:#1f2a24; --left:#7fa8d6; --right:#e08778; --warn:#e0a83c;
-      --c-loaded:#e08a5c; --c-label:#c08ad3; --c-gap:#79b0db; --c-attrib:#a7bd6a; --c-sens:#d9b84e; --c-op:#b5b3ab; --c-none:#7d7b74; }
+    :root{ --bg:#141413; --bg2:#1b1b19; --paper:#1f1f1c; --ink:#efeee9; --ink2:#cfcdc6; --muted:#9d9b93; --rule:#34332e; --chip:#2a2925;
+      --accent:#8fcdb9; --accent-soft:#1f2e29; --left:#86ade0; --right:#e88b7d; --warn:#e8b14a;
+      --orig-bg:#2a2420; --neu-bg:#1c2a25;
+      --c-loaded:#e59366; --c-label:#c896dc; --c-gap:#7fb4de; --c-attrib:#aac36f; --c-sens:#dcbb52; --c-op:#b9b7af; --c-none:#7f7d76;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px -14px rgba(0,0,0,.6); }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
-  header.mast{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;border-bottom:3px double var(--rule);padding-bottom:14px;margin-bottom:18px}
-  .mast h1{font:700 40px/1 "Source Serif 4",Georgia,serif;letter-spacing:-.5px;margin:0}
-  .mast .sub{color:var(--muted);margin-top:6px}
-  .pill{font-size:12.5px;border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:5px 11px;display:inline-flex;gap:7px;align-items:center}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.55 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0 0 auto 0;height:420px;z-index:-1;
+    background:radial-gradient(60% 100% at 15% 0%,color-mix(in srgb,var(--left) 10%,transparent),transparent 70%),radial-gradient(60% 100% at 85% 0%,color-mix(in srgb,var(--right) 10%,transparent),transparent 70%)}
+  a{color:var(--accent)}
+  button{font-family:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:22px 20px 80px}
+  .hidden{display:none !important}
+
+  /* top bar */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:34px}
+  .brand{display:flex;align-items:center;gap:10px;font:700 18px/1 Inter,sans-serif;letter-spacing:-.2px;color:var(--ink);text-decoration:none}
+  .brand svg{width:30px;height:30px}
+  .pill{font-size:12.5px;border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:6px 12px;display:inline-flex;gap:8px;align-items:center;color:var(--ink2);cursor:default}
   .pill .d{width:8px;height:8px;border-radius:50%;background:var(--c-none)}
-  .pill.ok .d{background:#3c9a5f} .pill.bad .d{background:var(--warn)}
-  form.go{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:8px}
-  form.go input[type=text]{font:15px Inter,sans-serif;padding:11px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink)}
-  .btn{font:600 14px Inter,sans-serif;border:0;border-radius:10px;padding:11px 18px;background:var(--ink);color:var(--paper);cursor:pointer}
-  .btn:disabled{opacity:.5;cursor:default}
-  .opts{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);margin-bottom:10px;align-items:center}
-  .opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
-  .linkish{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
-  textarea{width:100%;min-height:130px;font:13px ui-monospace,Menlo,monospace;padding:10px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink)}
-  .status{font-size:13.5px;color:var(--muted);min-height:22px;margin:6px 0}
-  .prog{height:4px;background:var(--rule);border-radius:2px;overflow:hidden;margin-bottom:18px}
-  .prog > i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
-  .err{background:color-mix(in srgb,var(--warn) 12%,var(--paper));border:1px solid var(--warn);border-radius:10px;padding:12px 14px;margin-bottom:16px}
-  .card{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:18px 20px;margin-bottom:16px}
-  .card h2{font:700 20px "Source Serif 4",serif;margin:0 0 4px}
-  .card .src{font-size:13px;color:var(--muted);word-break:break-all}
-  .verdict{font:600 22px "Source Serif 4",serif;margin:14px 0 8px}
-  .meter{position:relative;height:56px;margin:8px 4px 4px}
-  .meter .track{position:absolute;left:0;right:0;top:22px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--left),color-mix(in srgb,var(--left) 25%,var(--rule)) 40%,var(--rule) 50%,color-mix(in srgb,var(--right) 25%,var(--rule)) 60%,var(--right))}
-  .meter .ticks{position:absolute;left:0;right:0;top:38px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
-  .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;font-size:11px;white-space:nowrap;transition:left .5s}
-  .mk b{display:block;width:3px;height:30px;border-radius:2px;background:var(--ink);margin-top:2px}
-  .mk.lex b{background:var(--muted);height:22px;margin-top:6px} .mk.sel b{background:var(--accent);height:22px;margin-top:6px}
-  .mk.lex b,.mk.sel b{height:18px;margin-top:-4px;position:relative;top:14px}
-  .meter{height:44px}
-  .meter .track{top:14px} .meter .ticks{top:30px}
-  .mk b{height:26px}
-  .legend{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:var(--muted);margin-top:4px}
-  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-  .legend b{color:var(--ink)}
-  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:22px}
-  .mini h3{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:0 0 8px}
-  .bars{display:flex;align-items:flex-end;gap:6px;height:64px}
-  .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:11px;color:var(--muted);height:100%}
-  .bars i{display:block;width:100%;border-radius:3px 3px 0 0;min-height:2px}
-  .kinds{display:flex;flex-direction:column;gap:3px;font-size:13px}
-  .kinds span{display:flex;justify-content:space-between;gap:8px}
-  .caveat{font-size:12.5px;color:var(--muted);margin-top:14px;border-top:1px solid var(--rule);padding-top:10px}
-  .topics{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
-  .topics td{padding:5px 6px;border-bottom:1px solid var(--rule)}
-  .obs{margin:10px 0 0;padding-left:20px;font-size:14px}
-  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
-  .filters button{font:500 13px Inter,sans-serif;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
-  .filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
-  .bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);padding:10px 0;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center}
-  .bar .side{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:1.3px;display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:0;color:var(--ink);padding:4px}
-  .bar .side .sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--rule)}
-  .bar input[type=range]{width:100%;accent-color:var(--ink)}
-  .bar .presets{grid-column:1/-1;display:flex;justify-content:center;gap:6px;margin-top:-4px;flex-wrap:wrap}
-  .bar .presets button{font:500 12px Inter,sans-serif;background:var(--paper);border:1px solid var(--rule);color:var(--muted);border-radius:6px;padding:3px 10px;cursor:pointer}
-  .bar .presets button:hover,.bar .presets button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+  .pill.ok .d{background:#3fa06c} .pill.bad .d{background:var(--warn)}
+  button.pill{cursor:pointer}
+
+  /* hero */
+  .hero{text-align:center;max-width:760px;margin:0 auto 26px}
+  .hero h1{font:700 clamp(32px,5vw,52px)/1.05 "Source Serif 4",Georgia,serif;letter-spacing:-1px;margin:0 0 12px}
+  .hero h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+  .hero p{color:var(--muted);font-size:17px;margin:0 auto;max-width:600px}
+  .search{max-width:760px;margin:0 auto;background:var(--paper);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow);padding:10px}
+  .search form{display:flex;gap:8px;align-items:center}
+  .search .ico{width:20px;height:20px;margin-left:10px;color:var(--muted);flex:none}
+  .search input[type=text]{flex:1;min-width:0;border:0;background:transparent;font:16.5px Inter,sans-serif;color:var(--ink);padding:12px 6px;outline:none}
+  .btn{font:600 15px Inter,sans-serif;border:0;border-radius:12px;padding:13px 22px;background:var(--ink);color:var(--paper);cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:transform .1s, opacity .2s}
+  .btn:hover{transform:translateY(-1px)} .btn:active{transform:none}
+  .btn:disabled{opacity:.55;cursor:default;transform:none}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+  .examples{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px auto 0;max-width:760px;font-size:13px;color:var(--muted);align-items:center}
+  .examples button{font:500 13px Inter,sans-serif;border:1px solid var(--rule);background:var(--paper);color:var(--ink2);border-radius:999px;padding:6px 12px;cursor:pointer;transition:border-color .15s, transform .1s}
+  .examples button:hover{border-color:var(--ink);transform:translateY(-1px)}
+  .more{max-width:760px;margin:12px auto 0;font-size:13.5px;color:var(--muted)}
+  .more summary{cursor:pointer;text-align:center;list-style:none;user-select:none}
+  .more summary::-webkit-details-marker{display:none}
+  .more summary::after{content:" ▾"}
+  .more[open] summary::after{content:" ▴"}
+  .more .box{margin-top:10px;background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:14px 16px;text-align:left}
+  .more label{display:flex;gap:8px;align-items:center;cursor:pointer;color:var(--ink2)}
+  textarea{width:100%;min-height:120px;margin-top:10px;font:13px ui-monospace,Menlo,monospace;padding:10px;border:1px solid var(--rule);border-radius:10px;background:var(--bg);color:var(--ink)}
+
+  /* key setup */
+  .keycard{max-width:760px;margin:0 auto 14px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:16px;padding:14px 16px;font-size:14px;color:var(--ink2)}
+  .keycard b{color:var(--ink)}
+  .keycard .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .keycard input[type=password]{flex:1;min-width:220px;font:14px ui-monospace,Menlo,monospace;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink)}
+  .keycard select{font:13.5px Inter,sans-serif;padding:9px 10px;border-radius:10px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+  .keycard .fine{font-size:12.5px;color:var(--muted);margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+  .keycard .fine label{display:flex;gap:6px;align-items:center;cursor:pointer}
+  .linkish{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px}
+
+  /* how it works (empty state) */
+  .how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:900px;margin:44px auto 0}
+  .how div{background:color-mix(in srgb,var(--paper) 70%,transparent);border:1px solid var(--rule);border-radius:16px;padding:18px}
+  .how .n{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--paper);font:700 13px Inter;margin-bottom:8px}
+  .how h3{margin:0 0 4px;font:600 16px Inter,sans-serif}
+  .how p{margin:0;color:var(--muted);font-size:14px}
+
+  /* progress */
+  .card{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:18px}
+  .progress{max-width:760px;margin:22px auto 0}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .step{display:flex;gap:9px;align-items:center;font-size:13.5px;color:var(--muted)}
+  .step i{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--rule);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;color:var(--paper)}
+  .step.active{color:var(--ink)} .step.active i{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
+  .step.done{color:var(--ink2)} .step.done i{background:var(--accent);border-color:var(--accent)}
+  .step.skip{opacity:.45}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .bar{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--left)));border-radius:3px;transition:width .4s}
+  .status{font-size:13.5px;color:var(--muted);margin-top:10px;min-height:20px}
+  .err{max-width:760px;margin:16px auto 0;background:color-mix(in srgb,var(--warn) 10%,var(--paper));border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:14px;padding:12px 16px;font-size:14.5px}
+
+  /* verdict */
+  #results{margin-top:30px;animation:rise .4s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .verdict{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center}
+  .eyebrow{font:600 11.5px Inter;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+  .verdict h2{font:700 clamp(26px,3.4vw,36px)/1.12 "Source Serif 4",serif;margin:6px 0 10px;letter-spacing:-.5px}
+  .verdict .src{font-size:13px;color:var(--muted);word-break:break-all}
+  .verdict p.explain{color:var(--ink2);margin:0 0 6px}
+  .gauge{position:relative;padding:34px 0 26px}
+  .gauge .track{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--left),color-mix(in srgb,var(--left) 20%,var(--bg2)) 38%,var(--bg2) 50%,color-mix(in srgb,var(--right) 20%,var(--bg2)) 62%,var(--right))}
+  .gauge .tick{position:absolute;top:30px;left:50%;width:2px;height:22px;background:var(--muted);opacity:.35}
+  .gauge .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px}
+  .gauge .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;transition:left .9s cubic-bezier(.2,.9,.2,1)}
+  .gauge .mk span{font:700 12px Inter;background:var(--ink);color:var(--paper);border-radius:6px;padding:2px 7px;white-space:nowrap}
+  .gauge .mk b{width:4px;height:30px;background:var(--ink);border-radius:2px;margin-top:2px}
+  .gauge .sub{position:absolute;top:44px;width:12px;height:12px;transform:translate(-50%,0) rotate(45deg);border:2.5px solid var(--accent);background:var(--paper);transition:left .9s cubic-bezier(.2,.9,.2,1)}
+  .gauge .sub.lex{border-color:var(--muted);border-radius:50%;transform:translate(-50%,0)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+  .legend span{display:inline-flex;gap:6px;align-items:center}
+  .legend i{display:inline-block;width:10px;height:10px}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+  .tile{background:var(--bg);border-radius:14px;padding:14px 16px}
+  .tile .v{font:700 28px/1 "Source Serif 4",serif}
+  .tile .l{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+  /* tabs */
+  .tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:12px;width:fit-content;margin:6px 0 16px}
+  .tabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font:600 14px Inter;color:var(--muted);cursor:pointer}
+  .tabs button[aria-selected="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  /* headline toolbar */
+  .toolbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:10px 0;margin-bottom:6px;border-bottom:1px solid var(--rule);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .seg{display:inline-flex;background:var(--bg2);border-radius:10px;padding:3px}
+  .seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font:600 13px Inter;color:var(--muted);cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .toolbar select{font:500 13px Inter;padding:7px 10px;border-radius:10px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}
+  .zenbtn{font:600 13px Inter;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:10px;padding:7px 12px;cursor:pointer}
+  .zenbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  .colheads{display:grid;grid-template-columns:calc((100% - var(--gut)) * var(--split) / 100) var(--gut) 1fr;font:600 11.5px Inter;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:12px 0 6px}
+  .colheads div{overflow:hidden;white-space:nowrap;padding:0 16px}
+  .colheads div:last-child{text-align:right}
+
+  /* compare feed */
   #feed{position:relative}
-  .sec-h{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);border-bottom:1px solid var(--rule);padding:22px 0 6px;margin:0;position:relative;z-index:2;background:var(--bg)}
-  .row{display:grid;grid-template-columns:calc((100% - var(--gut)) * var(--split) / 100) var(--gut) 1fr;border-bottom:1px solid var(--rule)}
+  .sec-h{font:600 11.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);padding:20px 0 8px;margin:0;position:relative;z-index:2;background:var(--bg)}
+  .row{display:grid;grid-template-columns:calc((100% - var(--gut)) * var(--split) / 100) var(--gut) 1fr;margin-bottom:8px;animation:rise .35s ease-out both}
   .cell{overflow:hidden;display:flex;min-width:0}
-  .cell.o{justify-content:flex-start;background:var(--orig-bg);opacity:var(--lo)}
-  .cell.n{justify-content:flex-end;background:var(--neu-bg);opacity:var(--ro)}
-  .inner{flex:0 0 max(100%, var(--minw));padding:14px 16px}
-  .inner h4{margin:0;font:600 18px/1.32 "Source Serif 4",Georgia,serif}
+  .cell.o{justify-content:flex-start;background:var(--orig-bg);opacity:var(--lo);border-radius:14px 0 0 14px}
+  .cell.n{justify-content:flex-end;background:var(--neu-bg);opacity:var(--ro);border-radius:0 14px 14px 0}
+  .inner{flex:0 0 max(100%, var(--minw));padding:14px 18px}
+  .inner h4{margin:0;font:600 18px/1.35 "Source Serif 4",Georgia,serif}
   .cell.o h4{font-weight:400}
-  .tag{font:600 10.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:4px;margin-right:8px;vertical-align:3px;background:var(--chip);color:var(--muted)}
-  .lean{font:700 10.5px Inter,sans-serif;letter-spacing:.5px;padding:2px 6px;border-radius:4px;margin-right:8px;vertical-align:3px;color:#fff}
-  mark{background:color-mix(in srgb,var(--mk) 22%,transparent);color:inherit;border-bottom:2px solid var(--mk);padding:0 1px;border-radius:2px}
+  .tag{font:600 10.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:5px;margin-right:8px;vertical-align:3px;background:var(--chip);color:var(--muted)}
+  .lean{font:700 10.5px Inter,sans-serif;padding:2px 6px;border-radius:5px;margin-right:8px;vertical-align:3px;color:#fff}
+  mark{background:color-mix(in srgb,var(--mk) 20%,transparent);color:inherit;border-bottom:2px solid var(--mk);padding:0 2px;border-radius:3px}
   .meta-line{margin-top:6px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
   .meta-line .k{font-weight:600;white-space:nowrap}
-  .meta-line a{color:var(--accent);text-decoration:none;white-space:nowrap}
+  .meta-line a{text-decoration:none;white-space:nowrap}
+  .meta-line a:hover{text-decoration:underline}
   .flag{margin-top:6px;font-size:12.5px;color:var(--warn)}
   #handle{position:absolute;top:0;bottom:0;width:var(--gut);left:calc((100% - var(--gut)) * var(--split) / 100);z-index:5;cursor:ew-resize;touch-action:none}
-  #handle::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);background:var(--ink);opacity:.85}
-  #handle .knob{position:sticky;top:calc(50vh - 22px);margin:0 auto;width:30px;height:44px;border-radius:15px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font:600 13px Inter,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  #handle::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);background:var(--ink);opacity:.18}
+  #handle .knob{position:sticky;top:calc(50vh - 22px);margin:0 auto;width:34px;height:46px;border-radius:17px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font:700 14px Inter;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .15s}
+  #handle:hover .knob{transform:scale(1.08)}
   body.dragging{user-select:none;cursor:ew-resize}
-  /* Sane-brain mode: neutral headlines only, no scores, no notes. */
-  body.sane .meta-line .k, body.sane .meta-line .note, body.sane .lean, body.sane #summary, body.sane #pagecard, body.sane .filters{display:none}
-  body.sane .cell.n{background:transparent}
-  body.sane .cell.o, body.sane #handle, body.sane .bar .side, body.sane .bar input[type=range]{display:none}
-  body.sane .row{grid-template-columns:1fr}
-  body.sane .bar{grid-template-columns:1fr}
-  body.sane .inner h4{font-weight:500}
-  .hidden{display:none !important}
-  .keypanel{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13.5px}
-  .keypanel .r{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
-  .keypanel input[type=password]{flex:1;min-width:240px;font:14px ui-monospace,Menlo,monospace;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--ink)}
-  .keypanel a{color:var(--accent)}
-  .keypanel select{font:13px Inter,sans-serif;padding:7px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
-  footer{color:var(--muted);font-size:12.5px;margin-top:40px;border-top:1px solid var(--rule);padding-top:14px}
-  @media (max-width:640px){.mast h1{font-size:32px}.inner{padding:12px 10px}.inner h4{font-size:16px}:root{--gut:24px;--minw:min(300px,36vw)}
-    .bar{grid-template-columns:1fr 1fr}.bar input[type=range]{grid-column:1/-1;grid-row:2}.bar .side[data-go="0"]{justify-self:end}.bar .presets{grid-row:3;margin-top:0}}
+  .empty{color:var(--muted);padding:30px 0;text-align:center}
+
+  /* zen (sane-brain) mode */
+  body.zen .cell.o, body.zen #handle, body.zen .colheads, body.zen .meta-line .k, body.zen .meta-line .note, body.zen .lean, body.zen #filterSel, body.zen .seg{display:none}
+  body.zen .row{grid-template-columns:1fr;margin-bottom:0;border-bottom:1px solid var(--rule)}
+  body.zen .cell.n{background:transparent;border-radius:0}
+  body.zen .inner h4{font-weight:500;font-size:19px}
+  body.zen .sec-h{background:transparent}
+  body.zen .toolbar{justify-content:flex-end}
+
+  /* coverage + breakdown */
+  .topics{display:flex;flex-direction:column;gap:10px;margin:8px 0 16px}
+  .topic{display:grid;grid-template-columns:minmax(120px,1.2fr) 3fr 54px;gap:12px;align-items:center;font-size:14.5px}
+  .topic .tb{height:10px;border-radius:5px;background:var(--bg2);overflow:hidden}
+  .topic .tb i{display:block;height:100%;border-radius:5px}
+  .obs{margin:0;padding-left:20px;color:var(--ink2)} .obs li{margin:6px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .mini h3{font:600 12px Inter,sans-serif;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:0 0 12px}
+  .bars{display:flex;align-items:flex-end;gap:8px;height:110px}
+  .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-size:12px;color:var(--muted);height:100%;gap:4px}
+  .bars i{display:block;width:100%;border-radius:6px 6px 2px 2px;min-height:3px;transition:height .6s}
+  .kinds{display:flex;flex-direction:column;gap:8px;font-size:14px}
+  .kinds .kr{display:grid;grid-template-columns:150px 1fr 30px;gap:10px;align-items:center}
+  .kinds .kb{height:8px;border-radius:4px;background:var(--bg2);overflow:hidden} .kinds .kb i{display:block;height:100%}
+  .note-sm{font-size:13px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--rule)}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+
+  footer{color:var(--muted);font-size:13px;margin-top:56px;border-top:1px solid var(--rule);padding-top:18px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+
+  @media (max-width:760px){
+    .how,.grid2,.verdict{grid-template-columns:1fr}
+    .tiles{grid-template-columns:1fr 1fr}
+    .steps{grid-template-columns:1fr 1fr}
+    .inner{padding:12px 12px}.inner h4{font-size:16px}
+    :root{--gut:24px;--minw:min(300px,38vw)}
+    .search form{flex-wrap:wrap}.search .btn{width:100%;justify-content:center}
+    .topic{grid-template-columns:1fr 1.4fr 44px}
+    .kinds .kr{grid-template-columns:120px 1fr 26px}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="mast">
-    <div>
-      <h1>NewsNeutralizer</h1>
-      <div class="sub" id="subtitle">Assess a news page's left/right framing and read every headline in neutral wire style, using a model on your own machine.</div>
-    </div>
-    <span class="pill" id="health"><span class="d"></span><span>Checking model…</span></span>
-  </header>
-
-  <form class="go" id="go">
-    <input type="text" id="url" placeholder="https://www.example-news.com  (or an RSS feed URL)" autocomplete="off" spellcheck="false">
-    <button class="btn" id="run" type="submit">Analyze</button>
-  </form>
-  <div class="opts">
-    <label><input type="checkbox" id="pagepass" checked> Also assess story selection (one extra model call)</label>
-    <button type="button" class="linkish" id="togglePaste">Site blocks fetching? Paste HTML or headlines instead</button>
+  <div class="top">
+    <a class="brand" href="./" aria-label="NewsNeutralizer home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="M8 21h16" stroke="var(--paper)" stroke-width="2.5" stroke-linecap="round"/><circle cx="11" cy="14" r="3.4" fill="var(--left)"/><circle cx="21" cy="14" r="3.4" fill="var(--right)"/><circle cx="16" cy="14" r="3.4" fill="#97c8b8"/></svg>
+      NewsNeutralizer
+    </a>
+    <button class="pill" id="health" type="button"><span class="d"></span><span>Checking…</span></button>
   </div>
-  <div id="keyPanel" class="keypanel hidden">
-    <b>Runs on your Claude API key, only when you click Analyze.</b> Claude fetches the page for you. The key stays in this browser and is sent only to api.anthropic.com.
-    Rough cost per front page: ~8¢ with Sonnet, under 1¢ with Haiku. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key ↗</a>
+
+  <section class="hero">
+    <h1>See the spin.<br><em>Read it straight.</em></h1>
+    <p id="subtitle">Paste a news site. Claude checks how every headline is worded, shows which way the page leans, and rewrites each one in plain, neutral language.</p>
+  </section>
+
+  <div id="keyCard" class="keycard hidden">
+    <b>🔑 One-time setup: add your Claude API key.</b> It's only used when you click Analyze, stays in this browser, and goes straight to Anthropic. A front page costs roughly 8¢ with Sonnet or under 1¢ with Haiku.
     <div class="r">
-      <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
-      <select id="apiModel"><option value="claude-sonnet-5-5">Sonnet 5.5 (best)</option><option value="claude-haiku-5-5">Haiku 5.5 (cheapest)</option></select>
+      <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" aria-label="Claude API key">
+      <select id="apiModel" aria-label="Model"><option value="claude-sonnet-5-5">Sonnet 5.5: best judgment</option><option value="claude-haiku-5-5">Haiku 5.5: cheapest</option></select>
+      <button class="btn" id="saveKey" type="button">Save</button>
+    </div>
+    <div class="fine">
       <label><input type="checkbox" id="rememberKey"> Remember on this device</label>
+      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key ↗</a>
       <button type="button" class="linkish" id="forgetKey">Forget key</button>
     </div>
   </div>
-  <div id="pasteBox" class="hidden" style="margin-bottom:10px">
-    <textarea id="paste" placeholder="Paste the page's HTML (View Source → Select All → Copy), or one headline per line. Optional: 'Headline | https://link'"></textarea>
+
+  <div class="search">
+    <form id="go">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+      <input type="text" id="url" placeholder="Paste a news site, e.g. foxnews.com or cnn.com" autocomplete="off" spellcheck="false" aria-label="News site URL">
+      <button class="btn" id="run" type="submit">Analyze <span aria-hidden="true">→</span></button>
+    </form>
   </div>
-  <div class="status" id="status"></div>
-  <div class="prog"><i id="progbar"></i></div>
-  <div id="error" class="err hidden"></div>
+  <div class="examples" id="examples"><span>Try one:</span></div>
 
-  <section id="summary" class="card hidden"></section>
-  <section id="pagecard" class="card hidden"></section>
+  <details class="more">
+    <summary>More options</summary>
+    <div class="box">
+      <label><input type="checkbox" id="pagepass" checked> Also check story selection: what the whole page chooses to cover (one extra call)</label>
+      <div style="margin-top:12px">Site won't load? Paste its page source (View Source → Select All → Copy) or a list of headlines, one per line:</div>
+      <textarea id="paste" placeholder="&lt;html&gt;… or one headline per line (optionally: Headline | https://link)"></textarea>
+    </div>
+  </details>
 
-  <div id="results" class="hidden">
-    <div class="filters" id="filters"></div>
-    <div class="bar">
-      <button class="side" data-go="100"><span class="sw" style="background:var(--orig-bg)"></span>As published</button>
-      <input id="range" type="range" min="0" max="100" value="50" aria-label="Slide between original and neutral headlines">
-      <button class="side" data-go="0">Neutral rewrite<span class="sw" style="background:var(--neu-bg)"></span></button>
-      <div class="presets">
-        <button data-go="100">Original only</button><button data-go="50">Side by side</button><button data-go="0">Neutral only</button>
-        <button id="sane" aria-pressed="false" title="Neutral headlines only, with no scores or notes">🧘 Sane-brain mode</button>
+  <div id="error" class="err hidden" role="alert"></div>
+
+  <section id="progress" class="card progress hidden" aria-live="polite">
+    <div class="steps">
+      <div class="step" data-s="0"><i></i>Fetch page</div>
+      <div class="step" data-s="1"><i></i>Find headlines</div>
+      <div class="step" data-s="2"><i></i>Rewrite &amp; score</div>
+      <div class="step" data-s="3"><i></i>Check coverage</div>
+    </div>
+    <div class="bar"><i id="progbar"></i></div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <section class="how" id="how">
+    <div><span class="n">1</span><h3>Paste a site</h3><p>Any news front page or RSS feed. Claude reads every headline on it.</p></div>
+    <div><span class="n">2</span><h3>See the lean</h3><p>Each headline's wording is scored from left-coded to right-coded, with loaded words highlighted.</p></div>
+    <div><span class="n">3</span><h3>Read it straight</h3><p>Slide between the original and a neutral rewrite, or switch to calm mode and read only the plain versions.</p></div>
+  </section>
+
+  <section id="results" class="hidden">
+    <div class="card" id="summary"></div>
+
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="headlines">Headlines</button>
+      <button role="tab" aria-selected="false" data-tab="coverage" id="tabCoverage">Coverage</button>
+      <button role="tab" aria-selected="false" data-tab="breakdown">Breakdown</button>
+    </div>
+
+    <div data-panel="headlines">
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="View">
+          <button data-go="100" aria-pressed="false">Original</button>
+          <button data-go="50" aria-pressed="true">Side by side</button>
+          <button data-go="0" aria-pressed="false">Neutral</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="filterSel" aria-label="Filter headlines"></select>
+          <button class="zenbtn" id="sane" aria-pressed="false" title="Only the neutral headlines, no scores or notes">🧘 Calm mode</button>
+        </div>
+      </div>
+      <div class="colheads"><div>As published</div><div></div><div>Neutral rewrite</div></div>
+      <div id="feed">
+        <div id="handle" tabindex="0" role="slider" aria-label="Drag to compare original and neutral" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><div class="knob">‹ ›</div></div>
+        <div id="rows"></div>
       </div>
     </div>
-    <div id="feed">
-      <div id="handle" tabindex="0" role="slider" aria-label="Comparison divider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><div class="knob">‹›</div></div>
-      <div id="rows"></div>
-    </div>
-  </div>
 
-  <footer>Scores describe the <b>wording</b> of headlines as judged by a language model. They are estimates, not verdicts, and the model makes mistakes in both directions. Rewrites use only the headline and its URL, so they can't add context the article provides. Lean markers: L2/L1 = left-coded wording, R1/R2 = right-coded, · = neutral.</footer>
+    <div data-panel="coverage" class="hidden"><div class="card" id="pagecard"></div></div>
+    <div data-panel="breakdown" class="hidden"><div class="card" id="breakdown"></div></div>
+  </section>
+
+  <footer>
+    <span>Scores describe headline <b>wording</b> as judged by a language model. They're estimates, not verdicts, and can be wrong in either direction. Rewrites use only the headline and its link.</span>
+    <a href="https://github.com/samuelling/NewsNeutralizer" target="_blank" rel="noopener">Source on GitHub ↗</a>
+  </footer>
 </div>
 
 <script>
 const KINDS = {
   loaded:{label:"Loaded language", color:"var(--c-loaded)"},
   label:{label:"Partisan label", color:"var(--c-label)"},
-  gap:{label:"Withheld substance", color:"var(--c-gap)"},
-  attrib:{label:"Needed attribution", color:"var(--c-attrib)"},
-  sens:{label:"Sensationalism", color:"var(--c-sens)"},
-  op:{label:"Opinion / shopping", color:"var(--c-op)"},
+  gap:{label:"Buried the news", color:"var(--c-gap)"},
+  attrib:{label:"Claim stated as fact", color:"var(--c-attrib)"},
+  sens:{label:"Hype & clickbait", color:"var(--c-sens)"},
+  op:{label:"Opinion / ad labeled", color:"var(--c-op)"},
   none:{label:"Already neutral", color:"var(--c-none)"}
 };
+const EXAMPLES = [['Fox News','https://www.foxnews.com/'],['CNN','https://www.cnn.com/'],['NY Post','https://nypost.com/'],['The Guardian','https://www.theguardian.com/us'],['Breitbart','https://www.breitbart.com/'],['HuffPost','https://www.huffpost.com/'],['AP News','https://apnews.com/'],['BBC','https://www.bbc.com/news']];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TOKEN = new URLSearchParams(location.search).get('token') || '';
 const headers = TOKEN ? {'x-nn-token': TOKEN} : {};
+const fmt = v => (v>0?'+':'')+Number(v).toFixed(2);
+const leanTag = k => k<0?`L${-k}`:k>0?`R${k}`:'·';
+const leanColor = k => k<0?'var(--left)':k>0?'var(--right)':'var(--c-none)';
 
-let rows = new Map(), meta = null, summary = null, page = null, active = 'all', politicalOnly = false;
+let rows = new Map(), meta = null, summary = null, page = null, active = 'all', politicalOnly = false, pagePassOn = true;
+let STATIC = false, client = null;
+
+/* ── examples ── */
+$('examples').insertAdjacentHTML('beforeend', EXAMPLES.map(([n,u])=>`<button type="button" data-url="${u}">${n}</button>`).join(''));
+$('examples').addEventListener('click', e => { const b=e.target.closest('button'); if(!b) return; $('url').value=b.dataset.url; $('paste').value=''; $('go').requestSubmit(); });
 
 /* ── mode: local server (has /api) or static GitHub Pages site (has mode.json) ── */
-let STATIC = false, client = null;
 (async () => {
   try { const r = await fetch('mode.json', {cache:'no-store'}); if (r.ok) STATIC = !!(await r.json()).static; } catch {}
   if (STATIC) initStatic(); else initServer();
@@ -207,41 +352,39 @@ function initServer(){
 
 async function initStatic(){
   client = await import('./client.js');
-  $('subtitle').textContent = "Paste a news site's URL. Claude scores its left/right framing and rewrites every headline in neutral wire style.";
-  $('url').placeholder = 'https://www.example-news.com';
-  $('keyPanel').classList.remove('hidden');
   const k = client.getKey(); if (k) $('apiKey').value = k;
-  const remembered = (()=>{ try { return !!localStorage.getItem('nn.anthropicKey'); } catch { return false; } })();
-  $('rememberKey').checked = remembered;
-  const pill = () => { const has=!!$('apiKey').value.trim(); $('health').className='pill '+(has?'ok':'bad'); $('health').lastElementChild.textContent = has?`Claude · ${$('apiModel').selectedOptions[0].text.split(' (')[0]}`:'Add your API key'; };
-  const save = () => { client.setKey($('apiKey').value.trim(), $('rememberKey').checked); pill(); };
-  $('apiKey').addEventListener('input', save); $('rememberKey').addEventListener('change', save); $('apiModel').addEventListener('change', pill);
+  $('rememberKey').checked = (()=>{ try { return !!localStorage.getItem('nn.anthropicKey'); } catch { return false; } })();
+  try { const m = localStorage.getItem('nn.model'); if (m) $('apiModel').value = m; } catch {}
+  const save = () => { client.setKey($('apiKey').value.trim(), $('rememberKey').checked); try{localStorage.setItem('nn.model',$('apiModel').value)}catch{}; pill(); };
+  $('saveKey').onclick = () => { save(); if ($('apiKey').value.trim()) $('keyCard').classList.add('hidden'); };
+  $('apiKey').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); $('saveKey').click(); } });
+  $('rememberKey').addEventListener('change', save); $('apiModel').addEventListener('change', save);
   $('forgetKey').onclick = ()=>{ client.forgetKey(); $('apiKey').value=''; $('rememberKey').checked=false; pill(); };
+  $('health').onclick = () => { $('keyCard').classList.toggle('hidden'); if (!$('keyCard').classList.contains('hidden')) $('apiKey').focus(); };
+  if (!k) $('keyCard').classList.remove('hidden');
   pill();
 }
-
-function resetResults(){
-  rows = new Map(); meta = summary = page = null; active='all';
-  ['error','summary','pagecard','results'].forEach(id=>$(id).classList.add('hidden'));
-  $('status').textContent=''; setProg(0);
+function pill(){
+  const has = !!$('apiKey').value.trim();
+  $('health').className = 'pill ' + (has ? 'ok' : 'bad');
+  $('health').lastElementChild.textContent = has ? `🔑 Key saved · ${$('apiModel').selectedOptions[0].text.split(':')[0]}` : 'Add your API key';
 }
-
-$('togglePaste').onclick = () => $('pasteBox').classList.toggle('hidden');
 
 /* ── run ── */
 $('go').addEventListener('submit', async e => {
   e.preventDefault();
   const url = $('url').value.trim(), pasted = $('paste').value.trim();
-  if (!url && !pasted) return;
+  if (!url && !pasted) { $('url').focus(); return; }
   const body = { pagePass: $('pagepass').checked };
+  pagePassOn = body.pagePass;
   if (pasted) { if (/<a[\s>]/i.test(pasted)) { body.html = pasted; body.url = url || undefined; } else body.text = pasted; }
   else body.url = url;
   if (STATIC) {
     const key = $('apiKey').value.trim();
-    if (!key) { $('apiKey').focus(); showError('Add your Claude API key above first.'); return; }
+    if (!key) { $('keyCard').classList.remove('hidden'); $('apiKey').focus(); showError('Add your Claude API key first: it only takes a moment, and you only do it once.'); return; }
     client.setKey(key, $('rememberKey').checked);
-    resetResults();
-  } else resetResults();
+  }
+  resetResults(); startProgress(!!pasted);
   $('run').disabled = true;
   try {
     if (STATIC) await client.analyzeInBrowser({ ...body, key: $('apiKey').value.trim(), model: $('apiModel').value }, handle);
@@ -259,73 +402,133 @@ $('go').addEventListener('submit', async e => {
   finally { $('run').disabled = false; }
 });
 
+function resetResults(){
+  rows = new Map(); meta = summary = page = null; active='all'; politicalOnly=false;
+  ['error','results'].forEach(id=>$(id).classList.add('hidden'));
+  $('how').classList.add('hidden');
+  selectTab('headlines');
+}
+
+/* ── progress stepper ── */
+function startProgress(pasted){
+  $('progress').classList.remove('hidden'); setProg(0); $('status').textContent='Starting…';
+  setStep(pasted ? 1 : 0);
+  if (pasted) markDone(0);
+  document.querySelector('.step[data-s="3"]').classList.toggle('skip', !pagePassOn);
+}
+function setStep(n){ document.querySelectorAll('.step').forEach(s=>{ const k=+s.dataset.s; if (k<n) markDone(k); else s.classList.toggle('active', k===n); }); }
+function markDone(k){ const s=document.querySelector(`.step[data-s="${k}"]`); s.classList.remove('active'); s.classList.add('done'); s.querySelector('i').textContent='✓'; }
+function clearSteps(){ document.querySelectorAll('.step').forEach(s=>{ s.classList.remove('active','done','skip'); s.querySelector('i').textContent=''; }); }
+
 function handle(ev){
-  if (ev.type==='status') { $('status').textContent = ev.message; if (ev.total) setProg(ev.done/ev.total); }
-  if (ev.type==='meta') { meta = ev; $('status').textContent = `Found ${ev.count} headlines${ev.cached?` (${ev.cached} cached)`:''}.`; }
-  if (ev.type==='items') { ev.items.forEach(r=>rows.set(r.id,r)); $('results').classList.remove('hidden'); if (meta) setProg(rows.size/meta.count); renderFilters(); renderRows(); }
+  if (ev.type==='status') {
+    $('status').textContent = ev.message;
+    if (/fetch|getting/i.test(ev.message) && !meta) setStep(meta?1:0);
+    if (/rewriting/i.test(ev.message)) setStep(2);
+    if (/story selection/i.test(ev.message)) setStep(3);
+    if (ev.total) setProg(0.08 + 0.82*(ev.done/ev.total));
+  }
+  if (ev.type==='meta') { meta = ev; setStep(2); setProg(0.08); $('status').textContent = `Found ${ev.count} headlines${ev.cached?`, ${ev.cached} already done earlier`:''}.`; }
+  if (ev.type==='items') { ev.items.forEach(r=>rows.set(r.id,r)); $('results').classList.remove('hidden'); renderFilters(); renderRows(); }
   if (ev.type==='page') { page = ev.page; renderPage(); }
-  if (ev.type==='summary') { summary = ev.summary; renderSummary(); }
-  if (ev.type==='done') { setProg(1); $('status').textContent = `Done: ${rows.size} headlines in ${(ev.elapsedMs/1000).toFixed(1)}s${meta?.cached?` (${meta.cached} from cache)`:''}.`; }
+  if (ev.type==='summary') { summary = ev.summary; renderSummary(); renderBreakdown(); if (!page) renderPage(); }
+  if (ev.type==='done') {
+    setProg(1); [0,1,2].forEach(markDone); if (pagePassOn && page) markDone(3);
+    $('status').textContent = `Done: ${rows.size} headlines in ${(ev.elapsedMs/1000).toFixed(1)}s${meta?.cached?` (${meta.cached} reused from earlier)`:''}.`;
+    setTimeout(()=>{ $('progress').classList.add('hidden'); clearSteps(); }, 1600);
+    $('summary').scrollIntoView({behavior:'smooth', block:'start'});
+  }
   if (ev.type==='error') showError(ev.message);
 }
 function setProg(x){ $('progbar').style.width = `${Math.round(Math.min(1,x)*100)}%`; }
-function showError(m){ $('error').textContent = m; $('error').classList.remove('hidden'); $('status').textContent=''; }
+function showError(m){ $('error').textContent = m; $('error').classList.remove('hidden'); $('progress').classList.add('hidden'); clearSteps(); }
 
-/* ── summary ── */
-const pos = v => `${((v+2)/4)*100}%`;
+/* ── verdict ── */
+const pos = v => `${((Math.max(-2,Math.min(2,v))+2)/4)*100}%`;
+function host(u){ try { return new URL(u).hostname.replace(/^www\./,''); } catch { return u || ''; } }
 function renderSummary(){
-  const s = summary, el = $('summary');
-  const max = Math.max(1, ...Object.values(s.distribution));
-  const leanColor = k => k<0?'var(--left)':k>0?'var(--right)':'var(--c-none)';
-  el.innerHTML = `
-    <h2>Framing assessment</h2>
-    <div class="src">${esc(meta?.source||'')} · ${s.total} headlines, ${s.political} political · model: ${esc(meta?.model||'')}</div>
-    <div class="verdict">${esc(s.framingLabel)}</div>
-    <div class="meter">
-      <div class="track"></div>
-      <div class="mk" style="left:${pos(s.framingLean)}" title="Wording (model)"><b></b></div>
-      ${s.lexiconHits?`<div class="mk lex" style="left:${pos(s.lexiconLean)}" title="Word list"><b></b></div>`:''}
-      ${s.selectionLean!=null?`<div class="mk sel" style="left:${pos(s.selectionLean)}" title="Story selection"><b></b></div>`:''}
-      <div class="ticks"><span>Left</span><span></span><span>Neutral</span><span></span><span>Right</span></div>
+  const s = summary, d = s.distribution;
+  const right = (d[1]||0)+(d[2]||0), left = (d[-1]||0)+(d[-2]||0), neutral = d[0]||0;
+  const changed = s.total - (s.kinds.none||0);
+  const loaded = Object.entries(s.kinds).filter(([k])=>['loaded','label','sens'].includes(k)).reduce((a,[,v])=>a+v,0);
+  const explain = s.political < 6
+    ? `Only ${s.political} of ${s.total} headlines are political, which is too few to call a lean. The rewrites below still strip out hype and loaded wording.`
+    : `Of ${s.political} political headlines, <b style="color:var(--right)">${right}</b> used right-coded wording, <b style="color:var(--left)">${left}</b> used left-coded wording, and ${neutral} were neutral.`;
+  $('summary').innerHTML = `
+    <div class="verdict">
+      <div>
+        <div class="eyebrow">${esc(host(meta?.source))} · ${s.total} headlines</div>
+        <h2>${esc(s.framingLabel)}</h2>
+        <p class="explain">${explain}</p>
+        <div class="src">Model: ${esc(meta?.model||'')}</div>
+      </div>
+      <div>
+        <div class="gauge" style="${s.political<6?'opacity:.45':''}">
+          <div class="mk" style="left:50%" id="mkMain"><span>${fmt(s.framingLean)}</span><b></b></div>
+          ${s.lexiconHits?`<div class="sub lex" style="left:${pos(s.lexiconLean)}" title="Word list ${fmt(s.lexiconLean)}"></div>`:''}
+          ${s.selectionLean!=null?`<div class="sub" style="left:${pos(s.selectionLean)}" title="Story selection ${fmt(s.selectionLean)}"></div>`:''}
+          <div class="track"></div><div class="tick"></div>
+          <div class="ends"><span>◀ Left-coded</span><span>Neutral</span><span>Right-coded ▶</span></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--ink);border-radius:2px"></i>Headline wording</span>
+          ${s.selectionLean!=null?`<span><i style="border:2px solid var(--accent);transform:rotate(45deg)"></i>Story selection ${fmt(s.selectionLean)}</span>`:''}
+          ${s.lexiconHits?`<span><i style="border:2px solid var(--muted);border-radius:50%"></i>Word-list check ${fmt(s.lexiconLean)}</span>`:''}
+        </div>
+      </div>
     </div>
-    <div class="legend">
-      <span><i style="background:var(--ink)"></i>Wording (model) <b>${fmt(s.framingLean)}</b></span>
-      ${s.lexiconHits?`<span><i style="background:var(--muted)"></i>Word list <b>${fmt(s.lexiconLean)}</b></span>`:''}
-      ${s.selectionLean!=null?`<span><i style="background:var(--accent)"></i>Story selection <b>${fmt(s.selectionLean)}</b></span>`:''}
-    </div>
-    <div class="grid3">
-      <div class="mini"><h3>Political headlines by lean</h3><div class="bars">${[-2,-1,0,1,2].map(k=>`<div><i style="height:${(s.distribution[k]/max)*48+2}px;background:${leanColor(k)}"></i>${leanTag(k)} ${s.distribution[k]}</div>`).join('')}</div></div>
-      <div class="mini"><h3>What got fixed</h3><div class="kinds">${Object.entries(KINDS).map(([k,v])=>`<span><span><span class="dot" style="background:${v.color}"></span> ${v.label}</span><b>${s.kinds[k]||0}</b></span>`).join('')}</div></div>
-      <div class="mini"><h3>Cross-checks</h3><div class="kinds">
-        <span><span>Partisan-coded words found</span><b>${s.lexiconHits}</b></span>
-        <span><span>Rewrites flagged for added facts</span><b>${s.flagged}</b></span>
-        <span><span>Model vs. word list</span><b>${s.lexiconHits? (Math.sign(s.framingLean)===Math.sign(s.lexiconLean)||Math.abs(s.framingLean-s.lexiconLean)<0.5?'agree':'disagree'):'n/a'}</b></span>
-      </div></div>
-    </div>
-    <div class="caveat">The black marker is the model's confidence-weighted average lean of the <i>political</i> headlines' wording. The grey "word list" marker comes from a fixed list of partisan-coded terms, with no model involved; when the two disagree, be skeptical. Story selection, if shown, is the model's read of what the page chooses to cover. A rewrite can't fix that.</div>`;
-  el.classList.remove('hidden');
+    <div class="tiles">
+      <div class="tile"><div class="v">${s.total}</div><div class="l">headlines read</div></div>
+      <div class="tile"><div class="v">${s.total?Math.round(changed/s.total*100):0}%</div><div class="l">needed a rewrite</div></div>
+      <div class="tile"><div class="v">${loaded}</div><div class="l">used loaded words or hype</div></div>
+      <div class="tile"><div class="v">${s.flagged}</div><div class="l">rewrites to double-check ⚠</div></div>
+    </div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ const m=$('mkMain'); if (m) m.style.left = pos(s.framingLean); }));
 }
-const fmt = v => (v>0?'+':'')+Number(v).toFixed(2);
-function leanTag(k){ return k<0?`L${-k}`:k>0?`R${k}`:'·'; }
 
+/* ── coverage ── */
 function renderPage(){
-  if (!page) return;
-  const el=$('pagecard');
-  el.innerHTML = `<h2>Story selection</h2><div class="src">What the whole page chooses to cover and emphasize, as read by the model. Lean ${fmt(page.selection_lean||0)}.</div>
-    <table class="topics">${(page.topics||[]).map(t=>`<tr><td>${esc(t.topic)}</td><td style="text-align:right">${t.count}</td><td style="width:60px;text-align:right">${badge(t.lean)}</td></tr>`).join('')}</table>
+  const el = $('pagecard');
+  if (!page) {
+    el.innerHTML = `<div class="eyebrow">Coverage</div><p class="empty">${pagePassOn?'No coverage check for this page.':'Coverage check was turned off (see More options).'}</p>`;
+    return;
+  }
+  const max = Math.max(1, ...(page.topics||[]).map(t=>t.count));
+  el.innerHTML = `<div class="eyebrow">What the page chooses to cover</div>
+    <h2 style="font:700 24px 'Source Serif 4',serif;margin:6px 0 4px">Story selection leans ${page.selection_lean>0.2?'right':page.selection_lean<-0.2?'left':'neither way'} <span style="color:var(--muted);font-weight:400">(${fmt(page.selection_lean||0)})</span></h2>
+    <p style="color:var(--muted);margin:0 0 16px">Even perfectly neutral headlines can add up to a slant through which stories get picked. Bar colors show each topic's lean.</p>
+    <div class="topics">${(page.topics||[]).map(t=>`<div class="topic"><span>${esc(t.topic)}</span><div class="tb"><i style="width:${t.count/max*100}%;background:${leanColor(Math.round(t.lean||0))}"></i></div><span style="text-align:right;color:var(--muted)">${t.count}</span></div>`).join('')}</div>
     <ul class="obs">${(page.observations||[]).map(o=>`<li>${esc(o)}</li>`).join('')}</ul>`;
-  el.classList.remove('hidden');
 }
-function badge(l){ l=Math.round(l||0); return `<span class="lean" style="background:${l<0?'var(--left)':l>0?'var(--right)':'var(--c-none)'}">${leanTag(l)}</span>`; }
+
+/* ── breakdown ── */
+function renderBreakdown(){
+  const s = summary, max = Math.max(1, ...Object.values(s.distribution)), kmax = Math.max(1, ...Object.values(s.kinds));
+  const agree = s.lexiconHits ? (Math.sign(s.framingLean)===Math.sign(s.lexiconLean)||Math.abs(s.framingLean-s.lexiconLean)<0.5) : null;
+  $('breakdown').innerHTML = `<div class="grid2">
+    <div class="mini"><h3>Political headlines by lean</h3><div class="bars">${[-2,-1,0,1,2].map(k=>`<div><span>${s.distribution[k]}</span><i style="height:${(s.distribution[k]/max)*80+3}px;background:${leanColor(k)}"></i>${['Strong L','Mild L','Neutral','Mild R','Strong R'][k+2]}</div>`).join('')}</div></div>
+    <div class="mini"><h3>What got fixed</h3><div class="kinds">${Object.entries(KINDS).map(([k,v])=>`<div class="kr"><span>${v.label}</span><div class="kb"><i style="width:${(s.kinds[k]||0)/kmax*100}%;background:${v.color}"></i></div><b style="text-align:right">${s.kinds[k]||0}</b></div>`).join('')}</div></div>
+  </div>
+  <div class="note-sm"><b>How to read this.</b> The main score is Claude's confidence-weighted average lean of the political headlines' <i>wording</i>. As an independent check, a fixed word list of partisan-coded terms (no AI involved) found ${s.lexiconHits} such terms${agree===null?'':agree?' and agrees with the direction':', but <b>disagrees</b> with the direction, so treat the score with extra caution'}. ${s.flagged?`${s.flagged} rewrite${s.flagged>1?'s':''} added a name or number that wasn't in the original; those are marked ⚠.`:''}</div>`;
+}
+
+/* ── tabs ── */
+document.querySelector('.tabs').addEventListener('click', e => { const b=e.target.closest('button'); if (b) selectTab(b.dataset.tab); });
+function selectTab(t){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===t));
+  document.querySelectorAll('[data-panel]').forEach(p=>p.classList.toggle('hidden', p.dataset.panel!==t));
+}
 
 /* ── filters + rows ── */
 function renderFilters(){
   const all=[...rows.values()], counts={}; all.forEach(r=>counts[r.kind]=(counts[r.kind]||0)+1);
-  const btns=[["all","All",null,all.length],...Object.entries(KINDS).map(([k,v])=>[k,v.label,v.color,counts[k]||0])];
-  $('filters').innerHTML = btns.map(([k,l,c,n])=>`<button data-k="${k}" aria-pressed="${active===k}">${c?`<span class="dot" style="background:${c}"></span>`:''}${l} <span style="opacity:.6">${n}</span></button>`).join('')
-    + `<button data-pol="1" aria-pressed="${politicalOnly}">Political only</button>`;
+  const pol = all.filter(r=>r.political).length;
+  const opts = [['all',`All headlines (${all.length})`],['__pol',`Political only (${pol})`],['__changed',`Changed only (${all.length-(counts.none||0)})`],
+    ...Object.entries(KINDS).filter(([k])=>counts[k]).map(([k,v])=>[k,`${v.label} (${counts[k]})`])];
+  const cur = politicalOnly ? '__pol' : active;
+  $('filterSel').innerHTML = opts.map(([v,l])=>`<option value="${v}" ${v===cur?'selected':''}>${l}</option>`).join('');
 }
-$('filters').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; if(b.dataset.pol){politicalOnly=!politicalOnly;} else active=b.dataset.k; renderFilters(); renderRows();});
+$('filterSel').addEventListener('change', e => { const v=e.target.value; politicalOnly = v==='__pol'; active = politicalOnly ? 'all' : v; renderRows(); });
 
 function highlight(text, terms, color){
   let html = esc(text);
@@ -335,54 +538,55 @@ function highlight(text, terms, color){
   });
   return html;
 }
+function badge(l){ l=Math.round(l||0); return `<span class="lean" style="background:${leanColor(l)}" title="${l<0?'Left-coded':l>0?'Right-coded':'Neutral'} wording">${leanTag(l)}</span>`; }
 function renderRows(){
-  const list=[...rows.values()].sort((a,b)=>a.id-b.id).filter(r=>(active==='all'||r.kind===active)&&(!politicalOnly||r.political));
-  let html='', last=null;
+  const list=[...rows.values()].sort((a,b)=>a.id-b.id).filter(r=>
+    (active==='all' || (active==='__changed' ? r.kind!=='none' : r.kind===active)) && (!politicalOnly || r.political));
+  let html='', last=null, i=0;
   for (const r of list){
     if (r.section!==last){ html+=`<h3 class="sec-h">${esc(r.section)}</h3>`; last=r.section; }
     const K=KINDS[r.kind]||KINDS.none;
     const terms=[...(r.loaded_terms||[]), ...((r.lex?.hits)||[]).map(h=>h.term)];
-    html+=`<div class="row">
+    html+=`<div class="row" style="animation-delay:${Math.min(i++,20)*15}ms">
       <div class="cell o"><div class="inner"><h4>${r.political?badge(r.lean):''}${highlight(r.text, terms, K.color)}</h4>
-        <div class="meta-line">${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">Read original ↗</a>`:''}${r.cached?'<span>cached</span>':''}</div></div></div>
+        <div class="meta-line">${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">Read original ↗</a>`:''}</div></div></div>
       <div></div>
       <div class="cell n"><div class="inner"><h4>${esc(r.neutral)}</h4>
         <div class="meta-line"><span class="k" style="color:${K.color}">● ${K.label}</span><span class="note">${esc(r.note)}</span></div>
         ${(r.flags||[]).map(f=>`<div class="flag">⚠ ${esc(f)}</div>`).join('')}</div></div>
     </div>`;
   }
-  $('rows').innerHTML = html || '<p style="color:var(--muted);padding:20px 0">Nothing in this category.</p>';
+  $('rows').innerHTML = html || '<p class="empty">Nothing matches this filter.</p>';
 }
 
 /* ── slider ── */
-const root=document.documentElement, range=$('range'), feed=$('feed'), handleEl=$('handle');
+const root=document.documentElement, feed=$('feed'), handleEl=$('handle');
 let split=50, anim=null;
 function setSplit(v){
   split=Math.max(0,Math.min(100,v));
   root.style.setProperty('--split',split);
   root.style.setProperty('--lo',Math.min(1,0.15+split/30).toFixed(3));
   root.style.setProperty('--ro',Math.min(1,0.15+(100-split)/30).toFixed(3));
-  range.value=split; handleEl.setAttribute('aria-valuenow',Math.round(split));
+  handleEl.setAttribute('aria-valuenow',Math.round(split));
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', Math.abs(+b.dataset.go - split) < 3));
 }
 function animateTo(t){
   cancelAnimationFrame(anim); const s=split, t0=performance.now(), dur=450;
   const step=now=>{const p=Math.min(1,(now-t0)/dur), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2; setSplit(s+(t-s)*e); if(p<1) anim=requestAnimationFrame(step);};
   anim=requestAnimationFrame(step);
 }
-range.addEventListener('input',()=>{cancelAnimationFrame(anim);setSplit(+range.value)});
-document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{ if(document.body.classList.contains('sane')) toggleSane(false); animateTo(+b.dataset.go); }));
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>animateTo(+b.dataset.go)));
 function fromX(x){const r=feed.getBoundingClientRect(), g=handleEl.offsetWidth; setSplit(((x-r.left-g/2)/(r.width-g))*100);}
 handleEl.addEventListener('pointerdown',e=>{cancelAnimationFrame(anim);handleEl.setPointerCapture(e.pointerId);document.body.classList.add('dragging');fromX(e.clientX);});
 handleEl.addEventListener('pointermove',e=>{if(handleEl.hasPointerCapture(e.pointerId)) fromX(e.clientX);});
 handleEl.addEventListener('pointerup',e=>{handleEl.releasePointerCapture(e.pointerId);document.body.classList.remove('dragging');});
 handleEl.addEventListener('keydown',e=>{const s=e.shiftKey?10:3; if(e.key==='ArrowLeft'){setSplit(split-s);e.preventDefault();} if(e.key==='ArrowRight'){setSplit(split+s);e.preventDefault();}});
 
-function toggleSane(on){
-  on = on ?? !document.body.classList.contains('sane');
-  document.body.classList.toggle('sane', on); $('sane').setAttribute('aria-pressed', on);
-  if (on) animateTo(0);
-}
-$('sane').addEventListener('click',()=>toggleSane());
+$('sane').addEventListener('click',()=>{
+  const on = !document.body.classList.contains('zen');
+  document.body.classList.toggle('zen', on); $('sane').setAttribute('aria-pressed', on);
+  if (on) animateTo(0); else animateTo(50);
+});
 setSplit(50);
 </script>
 </body>
