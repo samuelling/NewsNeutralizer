@@ -9,7 +9,19 @@ Point it at a news front page (or an RSS feed). A language model running **on yo
 
 Nothing leaves your Mac except the request for the news page itself. There are no API costs.
 
-## Quick start (macOS, Apple Silicon, 16 GB+ RAM)
+## Quick start with the Claude API (fastest)
+
+```bash
+git clone https://github.com/samuelling/NewsNeutralizer && cd NewsNeutralizer
+npm install
+ANTHROPIC_API_KEY=sk-ant-... npm start     # → http://127.0.0.1:8787
+```
+
+Setting the key is enough: the app uses the Claude API (Sonnet 5.5 by default) and sends 5 batches at once, so a full front page takes well under a minute. Prompt caching means the long instructions are billed at a fraction of the normal rate after the first batch. Rough cost per 120-headline page: about $0.08 with Sonnet, under $0.01 with Haiku (`NN_ANTHROPIC_MODEL=claude-haiku-5-5`). Repeat visits only pay for new headlines. Get a key at console.anthropic.com. API billing is separate from a Claude.ai subscription.
+
+## Quick start with a local model (free, private, slower)
+
+Requires Apple Silicon with 16 GB+ RAM.
 
 ```bash
 # 1. Install Ollama (or download the app from ollama.com) and pull the default model (~9 GB)
@@ -87,13 +99,14 @@ Always set `NN_TOKEN` before exposing the server. Without it, anyone with the UR
 
 | Variable | Default | |
 |---|---|---|
-| `NN_BACKEND` | `ollama` | `ollama`, `anthropic`, or `mock` |
+| `NN_BACKEND` | `anthropic` if `ANTHROPIC_API_KEY` is set, else `ollama` | `ollama`, `anthropic`, or `mock` |
 | `NN_MODEL` | `qwen3:14b` | Ollama model tag |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | |
 | `NN_ANTHROPIC_MODEL` | `claude-sonnet-5-5` | |
 | `PORT` / `HOST` | `8787` / `127.0.0.1` | |
 | `NN_TOKEN` | — | Requires `?token=` or an `x-nn-token` header |
 | `NN_BATCH` | `8` | Headlines per LLM call |
+| `NN_CONCURRENCY` | `5` (API) / `1` (local) | Batches in flight at once |
 | `NN_NUM_CTX` | `8192` | Ollama context window |
 | `NN_MAX_HEADLINES` | `160` | |
 | `NN_CACHE` | `.cache/results.json` | Delete it to start fresh |

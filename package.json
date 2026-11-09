@@ -8,7 +8,7 @@
     "start": "node server.js",
     "mock": "NN_BACKEND=mock node server.js",
     "eval": "node eval/run.js",
-    "test": "node test/run.js"
+    "test": "node test/run.js && node test/anthropic.js"
   },
   "engines": {
     "node": ">=20"

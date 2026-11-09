@@ -15,20 +15,26 @@ const ref = JSON.parse(fs.readFileSync(path.join(here, 'plainwire-2026-11-09.jso
 const limitArg = process.argv.indexOf('--limit');
 const items = ref.items.slice(0, limitArg > 0 ? Number(process.argv[limitArg + 1]) : undefined);
 
-console.log(`Evaluating ${activeModel()} (${config.backend}) on ${items.length} headlines…`);
+console.log(`Evaluating ${activeModel()} (${config.backend}) on ${items.length} headlines, ${config.concurrency} batch(es) at a time…`);
+if (config.backend === 'ollama') console.log('(Nothing prints until the first batch finishes; the first one also loads the model, so give it a minute.)');
 const rows = items.map(it => {
   const lex = scanHeadline(it.original);
   return { id: it.id, text: it.original, url: it.url, section: it.section, lex, hints: lex.hits.map(h => `${h.term} (${h.dir})`).join('; ') };
 });
 
 const t0 = Date.now();
-for (let i = 0; i < rows.length; i += config.batchSize) {
-  const batch = rows.slice(i, i + config.batchSize);
-  const bt = Date.now();
-  const res = await rewriteBatch(batch);
-  batch.forEach((r, k) => Object.assign(r, normalize(res[k], r)));
-  process.stdout.write(`  ${Math.min(i + batch.length, rows.length)}/${rows.length}  (${((Date.now() - bt) / 1000).toFixed(1)}s for this batch)\n`);
-}
+const batches = [];
+for (let i = 0; i < rows.length; i += config.batchSize) batches.push(rows.slice(i, i + config.batchSize));
+let done = 0, next = 0;
+await Promise.all(Array.from({ length: Math.min(config.concurrency, batches.length) }, async () => {
+  while (next < batches.length) {
+    const batch = batches[next++], bt = Date.now();
+    const res = await rewriteBatch(batch);
+    batch.forEach((r, k) => Object.assign(r, normalize(res[k], r)));
+    done += batch.length;
+    process.stdout.write(`  ${done}/${rows.length}  (${((Date.now() - bt) / 1000).toFixed(1)}s for this batch)\n`);
+  }
+}));
 const secs = (Date.now() - t0) / 1000;
 
 // ── metrics ──
