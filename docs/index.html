@@ -307,7 +307,7 @@
 
   <footer>
     <span>Scores describe headline <b>wording</b> as judged by a language model. They're estimates, not verdicts, and can be wrong in either direction. Rewrites use only the headline and its link.</span>
-    <a href="https://github.com/samuelling/NewsNeutralizer" target="_blank" rel="noopener">Source on GitHub ↗</a>
+    <span><a href="https://github.com/samuelling/NewsNeutralizer" target="_blank" rel="noopener">Source on GitHub ↗</a> · <span id="ver"></span></span>
   </footer>
 </div>
 
@@ -330,16 +330,19 @@ const leanColor = k => k<0?'var(--left)':k>0?'var(--right)':'var(--c-none)';
 
 let rows = new Map(), meta = null, summary = null, page = null, active = 'all', politicalOnly = false, pagePassOn = true;
 let client = null;
+// Bump on every release: it cache-busts client.js and the modules it loads.
+const VERSION = '2026.11.09-4';
 
 /* ── examples ── */
 $('examples').insertAdjacentHTML('beforeend', EXAMPLES.map(([n,u])=>`<button type="button" data-url="${u}">${n}</button>`).join(''));
 $('examples').addEventListener('click', e => { const b=e.target.closest('button'); if(!b) return; $('url').value=b.dataset.url; $('paste').value=''; $('go').requestSubmit(); });
 
 /* ── setup ── */
+$('ver').textContent = 'v' + VERSION;
 initStatic();
 
 async function initStatic(){
-  client = await import('./client.js');
+  client = await import(`./client.js?v=${VERSION}`);
   const k = client.getKey(); if (k) $('apiKey').value = k;
   $('rememberKey').checked = (()=>{ try { return !!localStorage.getItem('nn.anthropicKey'); } catch { return false; } })();
   try { const m = localStorage.getItem('nn.model'); if (m) $('apiModel').value = m; } catch {}

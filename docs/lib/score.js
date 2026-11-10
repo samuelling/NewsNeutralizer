@@ -1,5 +1,5 @@
 // Pure scoring helpers shared by the Node server, the GitHub Actions builder and the browser client.
-import { KINDS } from './prompt.js';
+const KINDS = ['loaded', 'label', 'gap', 'attrib', 'sens', 'op', 'none'];
 
 export function normalize(res = {}, row) {
   const lean = Math.max(-2, Math.min(2, Math.round(Number(res.lean) || 0)));

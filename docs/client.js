@@ -1,9 +1,12 @@
 // Browser-only pipeline for the GitHub Pages site: the visitor's own Claude API key, used directly
 // from their browser. Claude's web-fetch tool retrieves the page (browsers can't fetch other sites).
 // Mirrors lib/analyze.js and emits the same events, so the UI renders both the same way.
-import { SYSTEM, PAGE_SYSTEM, PROMPT_VERSION, fewShotMessages, userMessage } from './lib/prompt.js';
-import { scanHeadline } from './lib/lexicon.js';
-import { normalize, summarize } from './lib/score.js';
+// Load the helper modules with the same ?v= stamp this file was loaded with, so a new release
+// never mixes with stale copies from the browser cache (GitHub Pages caches files for ~10 minutes).
+const V = new URL(import.meta.url).search;
+const { SYSTEM, PAGE_SYSTEM, PROMPT_VERSION, fewShotMessages, userMessage } = await import('./lib/prompt.js' + V);
+const { scanHeadline } = await import('./lib/lexicon.js' + V);
+const { normalize, summarize } = await import('./lib/score.js' + V);
 
 const API = 'https://api.anthropic.com/v1/messages';
 const FETCH_MODEL = 'claude-haiku-5-5'; // cheap and fast: only lists headlines
