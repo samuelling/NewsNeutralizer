@@ -53,7 +53,7 @@ const textOf = data => (data.content || []).filter(b => b.type === 'text').map(b
 async function headlinesViaClaude(url, key) {
   const host = new URL(url).hostname.replace(/^www\./, '');
   const data = await claude({
-    model: FETCH_MODEL, max_tokens: 8000, temperature: 0,
+    model: FETCH_MODEL, max_tokens: 8000,
     tools: [{ type: 'web_fetch_20250910', name: 'web_fetch', max_uses: 2, allowed_domains: [host], max_content_tokens: 60000 }],
     messages: [{ role: 'user', content:
       `Fetch this page: ${url}\n\nThen list the news headlines on it, in page order, up to ${MAX}. Use each headline's exact wording. ` +
@@ -152,7 +152,7 @@ export async function analyzeInBrowser({ url, html, text, pagePass = true, key, 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, batches.length) }, async () => {
     while (next < batches.length) {
       const batch = batches[next++];
-      const data = await claude({ model, max_tokens: 4096, temperature: 0.2, system: sys, messages: [...fewCached, { role: 'user', content: userMessage(batch) }] }, key);
+      const data = await claude({ model, max_tokens: 4096, system: sys, messages: [...fewCached, { role: 'user', content: userMessage(batch) }] }, key);
       const items = parseJson(textOf(data)).items || [];
       const byId = new Map(items.map(i => [Number(i.id), i]));
       batch.forEach((r, k) => {
@@ -171,7 +171,7 @@ export async function analyzeInBrowser({ url, html, text, pagePass = true, key, 
   if (pagePass) {
     emit({ type: 'status', message: 'Assessing story selection across the whole page…' });
     try {
-      const data = await claude({ model, max_tokens: 1500, temperature: 0.2, system: PAGE_SYSTEM + '\nRespond with a single JSON object and nothing else.',
+      const data = await claude({ model, max_tokens: 1500, system: PAGE_SYSTEM + '\nRespond with a single JSON object and nothing else.',
         messages: [{ role: 'user', content: `Front page headlines (${rows.length}):\n` + rows.map(r => `- ${r.text}`).join('\n') }] }, key);
       page = parseJson(textOf(data));
       emit({ type: 'page', page });
